@@ -15,13 +15,37 @@ interface AvatarViewerProps {
 }
 
 // Retarget animation from Mixamo bone names to RPM bone names
+// Also applies rotation corrections for hand bones due to axis differences
 function retargetAnimation(clip: THREE.AnimationClip): THREE.AnimationClip {
   const newTracks: THREE.KeyframeTrack[] = [];
 
+  // Bones that need rotation correction (hands and fingers)
+  const handBones = [
+    'LeftHand', 'RightHand',
+    'LeftHandThumb1', 'LeftHandThumb2', 'LeftHandThumb3', 'LeftHandThumb4',
+    'LeftHandIndex1', 'LeftHandIndex2', 'LeftHandIndex3', 'LeftHandIndex4',
+    'LeftHandMiddle1', 'LeftHandMiddle2', 'LeftHandMiddle3', 'LeftHandMiddle4',
+    'LeftHandRing1', 'LeftHandRing2', 'LeftHandRing3', 'LeftHandRing4',
+    'LeftHandPinky1', 'LeftHandPinky2', 'LeftHandPinky3', 'LeftHandPinky4',
+    'RightHandThumb1', 'RightHandThumb2', 'RightHandThumb3', 'RightHandThumb4',
+    'RightHandIndex1', 'RightHandIndex2', 'RightHandIndex3', 'RightHandIndex4',
+    'RightHandMiddle1', 'RightHandMiddle2', 'RightHandMiddle3', 'RightHandMiddle4',
+    'RightHandRing1', 'RightHandRing2', 'RightHandRing3', 'RightHandRing4',
+    'RightHandPinky1', 'RightHandPinky2', 'RightHandPinky3', 'RightHandPinky4',
+  ];
+
+  // Rotation correction quaternion (90 degrees around Z axis)
+  const correctionQuatLeft = new THREE.Quaternion().setFromAxisAngle(
+    new THREE.Vector3(0, 0, 1),
+    Math.PI / 2
+  );
+  const correctionQuatRight = new THREE.Quaternion().setFromAxisAngle(
+    new THREE.Vector3(0, 0, 1),
+    -Math.PI / 2
+  );
+
   for (const track of clip.tracks) {
-    // Determine target property
     // We only want to retarget rotations (quaternions) to avoid position scaling issues
-    // causing the avatar to fly away or distort
     if (track.name.endsWith('.position') || track.name.endsWith('.scale')) {
       continue;
     }
@@ -29,21 +53,51 @@ function retargetAnimation(clip: THREE.AnimationClip): THREE.AnimationClip {
     // Convert Mixamo bone names to RPM format
     // Example: "mixamorigHips.quaternion" -> "Hips.quaternion"
     const newName = track.name.replace(/^mixamorig/, '');
+    const boneName = newName.split('.')[0];
 
-    // Clone the track with the new name
-    const TrackConstructor = track.constructor as new (
-      name: string,
-      times: Float32Array,
-      values: Float32Array
-    ) => THREE.KeyframeTrack;
+    // Check if this is a hand bone that needs correction
+    const isLeftHandBone = handBones.includes(boneName) && boneName.startsWith('Left');
+    const isRightHandBone = handBones.includes(boneName) && boneName.startsWith('Right');
 
-    const newTrack = new TrackConstructor(
-      newName,
-      track.times as Float32Array,
-      track.values as Float32Array
-    );
+    if ((isLeftHandBone || isRightHandBone) && track.name.endsWith('.quaternion')) {
+      // Apply rotation correction to each keyframe
+      const values = track.values as Float32Array;
+      const correctedValues = new Float32Array(values.length);
+      const correctionQuat = isLeftHandBone ? correctionQuatLeft : correctionQuatRight;
 
-    newTracks.push(newTrack);
+      for (let i = 0; i < values.length; i += 4) {
+        const originalQuat = new THREE.Quaternion(
+          values[i], values[i + 1], values[i + 2], values[i + 3]
+        );
+        // Apply correction: correctedQuat = originalQuat * correctionQuat
+        const correctedQuat = originalQuat.multiply(correctionQuat);
+        correctedValues[i] = correctedQuat.x;
+        correctedValues[i + 1] = correctedQuat.y;
+        correctedValues[i + 2] = correctedQuat.z;
+        correctedValues[i + 3] = correctedQuat.w;
+      }
+
+      const newTrack = new THREE.QuaternionKeyframeTrack(
+        newName,
+        track.times as Float32Array,
+        correctedValues
+      );
+      newTracks.push(newTrack);
+    } else {
+      // Clone the track with the new name (no correction needed)
+      const TrackConstructor = track.constructor as new (
+        name: string,
+        times: Float32Array,
+        values: Float32Array
+      ) => THREE.KeyframeTrack;
+
+      const newTrack = new TrackConstructor(
+        newName,
+        track.times as Float32Array,
+        track.values as Float32Array
+      );
+      newTracks.push(newTrack);
+    }
   }
 
   return new THREE.AnimationClip(clip.name, clip.duration, newTracks);
