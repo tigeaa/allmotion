@@ -6,11 +6,13 @@ import AvatarViewer from '@/components/AvatarViewer';
  */
 export default function Home() {
   const avatarUrl = 'https://models.readyplayer.me/693f7c2478f65986ccfb842d.glb';
-  
+
   const animationUrls = {
     walking: '/animations/walking.fbx',
     sitting: '/animations/sitting.fbx',
     standing_up: '/animations/standing_up.fbx',
+    talking: '/animations/talking.fbx',
+    happy: '/animations/happy.fbx',
   };
 
   return (
@@ -28,7 +30,7 @@ export default function Home() {
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <AvatarViewer 
+          <AvatarViewer
             avatarUrl={avatarUrl}
             animationUrls={animationUrls}
           />
@@ -39,18 +41,18 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-slate-600">
           <p>
             Powered by{' '}
-            <a 
-              href="https://readyplayer.me" 
-              target="_blank" 
+            <a
+              href="https://readyplayer.me"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-700 font-semibold"
             >
               ReadyPlayerMe
             </a>
             {' '}and{' '}
-            <a 
-              href="https://threejs.org" 
-              target="_blank" 
+            <a
+              href="https://threejs.org"
+              target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-700 font-semibold"
             >
