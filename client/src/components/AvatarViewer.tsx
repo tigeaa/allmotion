@@ -144,8 +144,8 @@ export default function AvatarViewer({ avatarUrl, animationUrls }: AvatarViewerP
         (gltf: any) => {
           const model = gltf.scene;
           model.scale.set(3, 3, 3);
-          // Adjust model position to center it
-          model.position.y = -1.0;
+          // Adjust model position to center it (lower value = avatar moves down)
+          model.position.y = -2.5;
           scene.add(model);
 
           // Setup animation mixer
