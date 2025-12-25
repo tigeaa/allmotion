@@ -11,6 +11,7 @@ interface AvatarViewerProps {
     standing_up: string;
     talking: string;
     happy: string;
+    greeting: string;
   };
 }
 
@@ -154,7 +155,7 @@ export default function AvatarViewer({ avatarUrl, animationUrls }: AvatarViewerP
           // Load animations
           const animationLoader = new FBXLoader();
           let loadedAnimations = 0;
-          const totalAnimations = 5;
+          const totalAnimations = 6;
 
           const onAnimationLoaded = (name: string, fbxScene: THREE.Group) => {
             const animation = fbxScene.animations[0];
@@ -194,6 +195,10 @@ export default function AvatarViewer({ avatarUrl, animationUrls }: AvatarViewerP
 
           animationLoader.load(animationUrls.happy, (fbx: THREE.Group) => {
             onAnimationLoaded('happy', fbx);
+          });
+
+          animationLoader.load(animationUrls.greeting, (fbx: THREE.Group) => {
+            onAnimationLoaded('greeting', fbx);
           });
 
           // Animation loop
@@ -307,6 +312,12 @@ export default function AvatarViewer({ avatarUrl, animationUrls }: AvatarViewerP
           variant="outline"
         >
           Happy
+        </Button>
+        <Button
+          onClick={() => playAnimation('greeting')}
+          variant="outline"
+        >
+          Greeting
         </Button>
       </div>
     </div>

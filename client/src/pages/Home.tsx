@@ -13,6 +13,7 @@ export default function Home() {
     standing_up: '/animations/standing_up.fbx',
     talking: '/animations/talking.fbx',
     happy: '/animations/happy.fbx',
+    greeting: '/animations/greeting.fbx',
   };
 
   return (
