@@ -19,29 +19,19 @@ interface AvatarViewerProps {
 function retargetAnimation(clip: THREE.AnimationClip): THREE.AnimationClip {
   const newTracks: THREE.KeyframeTrack[] = [];
 
-  // Bones that need rotation correction (hands and fingers)
+  // Bones that need rotation correction (only wrist bones, not fingers)
   const handBones = [
     'LeftHand', 'RightHand',
-    'LeftHandThumb1', 'LeftHandThumb2', 'LeftHandThumb3', 'LeftHandThumb4',
-    'LeftHandIndex1', 'LeftHandIndex2', 'LeftHandIndex3', 'LeftHandIndex4',
-    'LeftHandMiddle1', 'LeftHandMiddle2', 'LeftHandMiddle3', 'LeftHandMiddle4',
-    'LeftHandRing1', 'LeftHandRing2', 'LeftHandRing3', 'LeftHandRing4',
-    'LeftHandPinky1', 'LeftHandPinky2', 'LeftHandPinky3', 'LeftHandPinky4',
-    'RightHandThumb1', 'RightHandThumb2', 'RightHandThumb3', 'RightHandThumb4',
-    'RightHandIndex1', 'RightHandIndex2', 'RightHandIndex3', 'RightHandIndex4',
-    'RightHandMiddle1', 'RightHandMiddle2', 'RightHandMiddle3', 'RightHandMiddle4',
-    'RightHandRing1', 'RightHandRing2', 'RightHandRing3', 'RightHandRing4',
-    'RightHandPinky1', 'RightHandPinky2', 'RightHandPinky3', 'RightHandPinky4',
   ];
 
-  // Rotation correction quaternion (90 degrees around Z axis)
+  // Rotation correction quaternion (180 degrees around Z axis to flip hand orientation)
   const correctionQuatLeft = new THREE.Quaternion().setFromAxisAngle(
     new THREE.Vector3(0, 0, 1),
-    Math.PI / 2
+    Math.PI
   );
   const correctionQuatRight = new THREE.Quaternion().setFromAxisAngle(
     new THREE.Vector3(0, 0, 1),
-    -Math.PI / 2
+    Math.PI
   );
 
   for (const track of clip.tracks) {
@@ -69,8 +59,8 @@ function retargetAnimation(clip: THREE.AnimationClip): THREE.AnimationClip {
         const originalQuat = new THREE.Quaternion(
           values[i], values[i + 1], values[i + 2], values[i + 3]
         );
-        // Apply correction: correctedQuat = originalQuat * correctionQuat
-        const correctedQuat = originalQuat.multiply(correctionQuat);
+        // Apply correction: correctedQuat = correctionQuat * originalQuat (pre-multiply)
+        const correctedQuat = correctionQuat.clone().multiply(originalQuat);
         correctedValues[i] = correctedQuat.x;
         correctedValues[i + 1] = correctedQuat.y;
         correctedValues[i + 2] = correctedQuat.z;
